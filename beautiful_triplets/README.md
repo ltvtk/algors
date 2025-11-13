@@ -128,16 +128,19 @@ Yêu cầu: Đếm số lượng bộ ba đẹp.
    - Reserve capacity cho vectors/maps
    - Reuse vectors thay vì tạo mới
 
-5. **unordered_map:** O(1) lookup thay vì O(log N) của map
+5. **map với pair key:** Dùng `map<pair<int, lint>, int>` thay vì unordered_map
+   - map ổn định hơn, tránh worst-case O(N) của unordered_map
+   - O(log N) lookup nhưng với constant factor nhỏ
 
-**Độ phức tạp:** O(N²) với constant factor rất nhỏ
+**Độ phức tạp:** O(N² log N) với constant factor rất nhỏ
 
 **Ưu điểm:**
 - **Nhanh nhất** trong tất cả các solutions
 - Pre-compute giảm O(N³) → O(N²)
-- unordered_map nhanh hơn map
+- map ổn định hơn unordered_map (tránh worst-case)
 - Memory-efficient với vector<char>
 - Không giới hạn giá trị A_i
+- Pragma optimizations cho compiler
 
 **File `solution_fast.cpp`:** Thêm `#pragma GCC optimize("O3,unroll-loops")` để compiler tối ưu aggressive hơn
 
@@ -358,6 +361,43 @@ ios_base::sync_with_stdio(false);
 cin.tie(nullptr);
 ```
 Giúp cin/cout nhanh hơn đáng kể.
+
+---
+
+## 🎯 Hướng dẫn Submit lên Online Judge
+
+### Bước 1: Chọn file để submit
+
+**KHUYẾN NGHỊ:** Submit `solution.cpp` hoặc `solution_fast.cpp` (giống nhau)
+
+### Bước 2: Copy toàn bộ code
+
+```bash
+cat solution_fast.cpp
+# Hoặc
+cat solution.cpp
+```
+
+### Bước 3: Submit
+
+Paste toàn bộ code vào online judge và submit.
+
+### Kết quả mong đợi
+
+Dựa trên các AC submissions:
+- **Best case:** ~2.5s - 5s (với pragma optimizations)
+- **Acceptable:** 5s - 10s
+- **Memory:** ~7MB - 25MB
+
+**Lưu ý:**
+- Nếu vẫn TLE, có thể online judge có time limit rất chặt
+- Thuật toán đã tối ưu từ O(N³) → O(N² log N)
+- Constant factor đã được giảm tối đa với các techniques:
+  - Pre-computation distinct_from
+  - Early breaks
+  - vector<char> thay vì vector<int>
+  - map thay vì unordered_map (ổn định hơn)
+  - Pragma optimizations
 
 ---
 

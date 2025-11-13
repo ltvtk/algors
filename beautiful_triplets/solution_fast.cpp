@@ -3,13 +3,6 @@
 using namespace std;
 using lint = long long;
 
-// Custom hash for pair<int, lint>
-struct PairHash {
-    inline size_t operator()(const pair<int, lint>& p) const {
-        return hash<lint>{}(p.first ^ (p.second << 1));
-    }
-};
-
 int main() {
     ios_base::sync_with_stdio(false);
     cin.tie(nullptr);
@@ -40,11 +33,9 @@ int main() {
         }
     }
 
-    // Reusable arrays for tracking seen values
+    // Reusable arrays
     vector<char> seen_left(max_val + 1, 0);
     vector<char> seen_right(max_val + 1, 0);
-
-    // Pre-allocate space
     vector<int> changed_left, changed_right;
     changed_left.reserve(n);
     changed_right.reserve(n);
@@ -55,17 +46,14 @@ int main() {
     for (int j = 0; j < n - 1; j++) {
         int max_right_size = distinct_from[j + 1];
 
-        // Build left segments ending at j
-        unordered_map<pair<int, lint>, int, PairHash> left_map;
-        left_map.reserve(min(j + 1, max_right_size));
-
+        // Build left segments using map (more stable than unordered_map)
+        map<pair<int, lint>, int> left_map;
         changed_left.clear();
         lint current_hash = 0;
         int current_size = 0;
 
         for (int i = j; i >= 0; i--) {
             if (!seen_left[a[i]]) {
-                // Early break: if left size exceeds max possible right size
                 if (current_size + 1 > max_right_size) {
                     break;
                 }
@@ -82,10 +70,9 @@ int main() {
             seen_left[x] = 0;
         }
 
-        // Find max left size for early break
-        int max_left_size = current_size;  // current_size at end is max
+        int max_left_size = current_size;
 
-        // Build right segments starting at j+1 and count matches
+        // Build right segments
         changed_right.clear();
         current_hash = 0;
         current_size = 0;
@@ -97,9 +84,7 @@ int main() {
                 current_size++;
                 current_hash ^= hashes[a[k]];
 
-                // Early break: if right size exceeds max left size
                 if (current_size > max_left_size) {
-                    // Clear and break
                     for (int x : changed_right) {
                         seen_right[x] = 0;
                     }
@@ -107,14 +92,12 @@ int main() {
                 }
             }
 
-            // Check if this (size, hash) exists in left_map
             auto it = left_map.find({current_size, current_hash});
             if (it != left_map.end()) {
                 beautiful_count += it->second;
             }
         }
 
-        // Clear seen_right if not already cleared
         if (current_size <= max_left_size) {
             for (int x : changed_right) {
                 seen_right[x] = 0;

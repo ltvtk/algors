@@ -108,22 +108,30 @@ Yêu cầu: Đếm số lượng bộ ba đẹp.
 
 ---
 
-### 4. `solution.cpp` - Giải pháp tổng hợp (KHUYẾN NGHỊ)
+### 4. `solution.cpp` & `solution_optimized.cpp` - Giải pháp tối ưu ⭐ (KHUYẾN NGHỊ)
 
-**Thuật toán:**
-- Tự động chọn thuật toán phù hợp dựa trên input:
-  - Nếu max(A_i) ≤ 63: Sử dụng bitmask (nhanh nhất)
-  - Ngược lại: Sử dụng hash với unordered_map
+**Thuật toán - Random Hash với Early Break:**
 
-**Độ phức tạp:**
-- Best case (A_i ≤ 63): O(N² × log N)
-- General case: O(N² × M)
+1. **Random Hash:** Gán mỗi giá trị một hash ngẫu nhiên 64-bit, dùng XOR để tạo signature cho set
+2. **Early Break Optimization:**
+   - Tính trước `max_right_size`: số phần tử distinct tối đa có thể có từ [j+1, n)
+   - Skip left segments nếu size > max_right_size
+   - Tính `max_left_size` và skip right segments nếu size > max_left_size
+3. **Sử dụng array thay vì set:** `seen[value] = 0/1` thay vì `set.count(value)`
+4. **Map key: (size, hash)** để tránh collision tốt hơn
+
+**Độ phức tạp:** O(N² × log N) với constant factor nhỏ nhờ early breaks
 
 **Ưu điểm:**
-- Tự động tối ưu cho mọi trường hợp
-- Đơn giản để sử dụng - chỉ cần submit 1 file
+- Rất nhanh nhờ random hash (64-bit XOR)
+- Early break giảm số operations đáng kể
+- Array tracking nhanh hơn set
+- Không giới hạn giá trị A_i
 
-**Phù hợp:** Tất cả subtasks
+**Nhược điểm:**
+- Có khả năng hash collision cực kỳ thấp (64-bit random)
+
+**Phù hợp:** **Tất cả subtasks - TỐI ƯU NHẤT**
 
 ---
 
@@ -176,9 +184,83 @@ Thuật toán tốt hơn O(N²) cho bài này khó thực hiện và phức tạ
 | subtask12_basic | ✅ Fast | ✅ OK | ⚠️ Slow | ⚠️ Slow |
 | subtask3_bitset | ✅ Fast | ✅ Fast | ✅ Fast | ❌ Error (overflow) |
 | general_hash | ✅ Fast | ✅ OK | ⚠️ OK | ⚠️ OK |
-| **solution** | ✅ **Fast** | ✅ **Fast** | ✅ **Fast** | ⚠️ **OK** |
+| **solution** (old) | ✅ Fast | ✅ Fast | ⚠️ Slow (TLE) | ⚠️ Slow (TLE) |
+| **solution_optimized** ⭐ | ✅ **Very Fast** | ✅ **Very Fast** | ✅ **Fast** | ✅ **Fast** |
 
-**Kết luận:** Sử dụng `solution.cpp` cho tất cả các test cases.
+**Kết luận:** Sử dụng `solution.cpp` hoặc `solution_optimized.cpp` (giống nhau) cho tất cả các test cases.
+
+---
+
+## Tối ưu hóa quan trọng
+
+### 1. Random Hash với XOR
+Thay vì so sánh set trực tiếp, ta gán mỗi giá trị một hash ngẫu nhiên 64-bit:
+```cpp
+mt19937_64 rng(chrono::steady_clock::now().time_since_epoch().count());
+for (int i = 1; i <= max_val; i++) {
+    hashes[i] = rng();
+}
+```
+
+Signature của một set = XOR tất cả hashes:
+```cpp
+current_hash ^= hashes[a[i]];  // Thêm phần tử vào set
+```
+
+**Ưu điểm:**
+- XOR rất nhanh (1 CPU cycle)
+- 64-bit → xác suất collision ≈ 1/2^64 (cực kỳ thấp)
+- Không cần sort hay convert set → vector
+
+### 2. Early Break Optimization
+
+**Ý tưởng:** Không cần xử lý tất cả segments nếu biết chắc chúng không match
+
+**Tối ưu 1 - Max Right Size:**
+```cpp
+// Tính trước: số distinct tối đa có thể có từ [j+1, n)
+int max_right_size = ...;
+
+// Khi build left segments:
+if (current_size + 1 > max_right_size) {
+    break;  // Left segment này không thể match với bất kỳ right segment nào
+}
+```
+
+**Tối ưu 2 - Max Left Size:**
+```cpp
+// Tính: size lớn nhất trong các left segments đã build
+int max_left_size = ...;
+
+// Khi build right segments:
+if (current_size > max_left_size) {
+    break;  // Right segment này quá lớn, không thể match
+}
+```
+
+**Impact:** Giảm số operations từ O(N²) xuống gần O(N×D) với D = số distinct values (thường nhỏ hơn N rất nhiều)
+
+### 3. Array tracking thay vì Set
+```cpp
+// Chậm:
+set<int> seen;
+if (seen.count(x)) ...
+seen.insert(x);
+
+// Nhanh:
+vector<int> seen(max_val + 1, 0);
+if (seen[x]) ...
+seen[x] = 1;
+```
+
+**Ưu điểm:** O(1) thay vì O(log N), cache-friendly
+
+### 4. Map với (size, hash) key
+```cpp
+map<pair<int, lint>, int> left_map;
+```
+
+Lưu cả size và hash giúp tránh collision: hai sets khác nhau phải khác cả về size VÀ hash.
 
 ---
 

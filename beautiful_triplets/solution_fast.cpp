@@ -1,17 +1,10 @@
-#pragma GCC optimize("O3,unroll-loops")
+#pragma GCC optimize("O3,unroll-loops,inline")
 #include <bits/stdc++.h>
 using namespace std;
 
-// Custom hash for pair that's much faster
-struct PairHash {
-    size_t operator()(const pair<int, long long>& p) const {
-        return (size_t)p.first * 1000000007LL + (size_t)(p.second >> 32) * 1000000009LL + (size_t)p.second;
-    }
-};
-
 int main() {
     ios_base::sync_with_stdio(false);
-    cin.tie(nullptr);
+    cin.tie(0);
 
     int n;
     cin >> n;
@@ -25,78 +18,87 @@ int main() {
 
     // Random hashes
     vector<long long> h(mx + 1);
-    mt19937_64 rng(chrono::steady_clock::now().time_since_epoch().count());
+    mt19937_64 rng(42);  // Fixed seed for consistency
     for (int i = 1; i <= mx; i++) {
         h[i] = rng();
     }
 
-    // Pre-compute distinct from each position
-    vector<int> d(n + 1);
+    // Pre-compute distinct count
+    vector<int> d(n);
     {
-        unordered_set<int> s;
+        vector<int> seen(mx + 1, 0);
+        int cnt = 0;
         for (int i = n - 1; i >= 0; i--) {
-            s.insert(a[i]);
-            d[i] = s.size();
+            if (!seen[a[i]]) {
+                seen[a[i]] = 1;
+                cnt++;
+            }
+            d[i] = cnt;
         }
     }
 
-    vector<bool> l(mx + 1), r(mx + 1);
+    vector<int> l(mx + 1, 0), r(mx + 1, 0);
     long long ans = 0;
 
     for (int j = 0; j < n - 1; j++) {
         int mr = d[j + 1];
 
-        // Build left with unordered_map for O(1) lookup
-        unordered_map<pair<int, long long>, int, PairHash> m;
-        m.reserve(mr + 1);
+        // Use map for stability
+        map<pair<int, long long>, int> mp;
 
         long long ch = 0;
         int cs = 0;
-        vector<int> cl;
-        cl.reserve(mr);
 
         for (int i = j; i >= 0; i--) {
             if (!l[a[i]]) {
                 if (cs + 1 > mr) break;
                 l[a[i]] = 1;
-                cl.push_back(a[i]);
                 cs++;
                 ch ^= h[a[i]];
             }
-            m[{cs, ch}]++;
+            mp[{cs, ch}]++;
         }
 
-        for (int x : cl) l[x] = 0;
+        // Reset left marks
+        ch = 0;
+        cs = 0;
+        for (int i = j; i >= 0; i--) {
+            if (l[a[i]]) {
+                l[a[i]] = 0;
+                if (cs++ > mr) break;
+            }
+        }
 
-        int ml = cs;
+        int ml = 0;
+        for (auto& p : mp) {
+            ml = max(ml, p.first.first);
+        }
 
         // Build right
         ch = 0;
         cs = 0;
-        vector<int> cr;
-        cr.reserve(ml);
 
         for (int k = j + 1; k < n; k++) {
             if (!r[a[k]]) {
                 r[a[k]] = 1;
-                cr.push_back(a[k]);
                 cs++;
                 ch ^= h[a[k]];
 
-                if (cs > ml) {
-                    for (int x : cr) r[x] = 0;
-                    break;
-                }
+                if (cs > ml) break;
             }
 
-            auto it = m.find({cs, ch});
-            if (it != m.end()) {
+            auto it = mp.find({cs, ch});
+            if (it != mp.end()) {
                 ans += it->second;
             }
         }
 
-        if (cs <= ml) {
-            for (int x : cr) r[x] = 0;
+        // Reset right marks
+        for (int k = j + 1; k < n && cs > 0; k++) {
+            if (r[a[k]]) {
+                r[a[k]] = 0;
+                cs--;
+            }
         }
     }
 

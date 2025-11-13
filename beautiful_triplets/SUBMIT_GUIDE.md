@@ -44,21 +44,38 @@ Dựa trên AC submissions khác:
 - **Good:** 5s - 8s
 - **Memory:** 7MB - 25MB
 
-**Với code hiện tại (O(N²) với unordered_map):** Nên pass được 20-25/25 test cases!
+**Với code hiện tại:** Pass 10/25 test cases.
+- Tests 1-10 (N nhỏ): ✅ AC (0.006s-0.349s)
+- Tests 11-25 (N lớn): ❌ TLE (>1s)
 
-## ⚠️ Nếu vẫn TLE
+## ⚠️ Phân tích TLE
 
-Code hiện tại đã optimize:
-- ✅ O(N²) complexity (không thể tốt hơn nhiều)
-- ✅ unordered_map O(1) thay vì map O(log N)
-- ✅ Custom hash tốt
+**Vấn đề:** Time limit 1s/test nhưng O(N²) với N=200K cần ~40s lý thuyết.
+
+Code hiện tại đã optimize tối đa:
+- ✅ Pre-compute: O(N³) → O(N²)
+- ✅ map thay vì unordered_map (ổn định hơn)
+- ✅ Custom hash XOR
 - ✅ Early breaks
-- ✅ Memory efficient
+- ✅ Fixed seed (tránh worst case)
+- ✅ No vector allocations
+- ✅ Minimal overhead
 
-Nếu vẫn TLE:
-1. Thử submit nhiều lần (random hash có thể cho kết quả khác nhau)
-2. Có thể judge yêu cầu constant factor thấp hơn nữa
-3. Hoặc cần approach hoàn toàn khác (ít khả năng với constraint này)
+**Current: 10/25 AC**
+
+**Gap analysis:**
+- AC submissions: 2.44s-8.25s (có thể là tổng cho 25 tests)
+- Nếu đúng → mỗi test ~0.1-0.3s → Approach của họ nhanh HƠN NHIỀU
+
+**Possible reasons:**
+1. Họ có constant factor cực kỳ nhỏ (có thể gấp 100x so với chúng ta)
+2. Họ dùng approach khác (không phải O(N²) standard)
+3. Họ có optimizations/tricks đặc biệt
+
+**Recommendations:**
+1. Thử submit code hiện tại và xem kết quả
+2. Nếu vẫn 10/25, có thể cần research approach khác
+3. Hoặc tham khảo editorial/discussions của bài
 
 ## 📝 Notes
 

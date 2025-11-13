@@ -1,0 +1,2 @@
+# algors
+research algorihm

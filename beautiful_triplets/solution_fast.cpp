@@ -1,7 +1,6 @@
 #pragma GCC optimize("O3,unroll-loops")
 #include <bits/stdc++.h>
 using namespace std;
-using lint = long long;
 
 int main() {
     ios_base::sync_with_stdio(false);
@@ -15,97 +14,84 @@ int main() {
         cin >> a[i];
     }
 
-    // Generate random hashes for each value
     int max_val = *max_element(a.begin(), a.end());
-    vector<lint> hashes(max_val + 1);
+
+    // Random hashes
+    vector<long long> h(max_val + 1);
     mt19937_64 rng(chrono::steady_clock::now().time_since_epoch().count());
     for (int i = 1; i <= max_val; i++) {
-        hashes[i] = rng();
+        h[i] = rng();
     }
 
-    // Pre-compute: For each position j, number of distinct values from j to n-1
-    vector<int> distinct_from(n + 1, 0);
+    // Pre-compute distinct values from each position
+    vector<int> dist(n + 1, 0);
     {
-        unordered_set<int> seen;
+        unordered_set<int> s;
         for (int i = n - 1; i >= 0; i--) {
-            seen.insert(a[i]);
-            distinct_from[i] = seen.size();
+            s.insert(a[i]);
+            dist[i] = s.size();
         }
     }
 
-    // Reusable arrays
-    vector<char> seen_left(max_val + 1, 0);
-    vector<char> seen_right(max_val + 1, 0);
-    vector<int> changed_left, changed_right;
-    changed_left.reserve(n);
-    changed_right.reserve(n);
+    vector<bool> sl(max_val + 1), sr(max_val + 1);
+    long long ans = 0;
 
-    lint beautiful_count = 0;
-
-    // For each j (boundary between X and Y)
     for (int j = 0; j < n - 1; j++) {
-        int max_right_size = distinct_from[j + 1];
+        int mr = dist[j + 1];
 
-        // Build left segments using map (more stable than unordered_map)
-        map<pair<int, lint>, int> left_map;
-        changed_left.clear();
-        lint current_hash = 0;
-        int current_size = 0;
+        // Build left segments
+        map<pair<int, long long>, int> lm;
+        long long ch = 0;
+        int cs = 0;
+        vector<int> cl;
+        cl.reserve(mr);
 
         for (int i = j; i >= 0; i--) {
-            if (!seen_left[a[i]]) {
-                if (current_size + 1 > max_right_size) {
-                    break;
-                }
-                seen_left[a[i]] = 1;
-                changed_left.push_back(a[i]);
-                current_size++;
-                current_hash ^= hashes[a[i]];
+            if (!sl[a[i]]) {
+                if (cs + 1 > mr) break;
+                sl[a[i]] = 1;
+                cl.push_back(a[i]);
+                cs++;
+                ch ^= h[a[i]];
             }
-            left_map[{current_size, current_hash}]++;
+            lm[{cs, ch}]++;
         }
 
-        // Clear seen_left
-        for (int x : changed_left) {
-            seen_left[x] = 0;
-        }
+        for (int x : cl) sl[x] = 0;
 
-        int max_left_size = current_size;
+        int ml = cs;
 
         // Build right segments
-        changed_right.clear();
-        current_hash = 0;
-        current_size = 0;
+        ch = 0;
+        cs = 0;
+        vector<int> cr;
+        cr.reserve(ml);
 
         for (int k = j + 1; k < n; k++) {
-            if (!seen_right[a[k]]) {
-                seen_right[a[k]] = 1;
-                changed_right.push_back(a[k]);
-                current_size++;
-                current_hash ^= hashes[a[k]];
+            if (!sr[a[k]]) {
+                sr[a[k]] = 1;
+                cr.push_back(a[k]);
+                cs++;
+                ch ^= h[a[k]];
 
-                if (current_size > max_left_size) {
-                    for (int x : changed_right) {
-                        seen_right[x] = 0;
-                    }
+                if (cs > ml) {
+                    for (int x : cr) sr[x] = 0;
                     break;
                 }
             }
 
-            auto it = left_map.find({current_size, current_hash});
-            if (it != left_map.end()) {
-                beautiful_count += it->second;
+            auto it = lm.find({cs, ch});
+            if (it != lm.end()) {
+                ans += it->second;
             }
         }
 
-        if (current_size <= max_left_size) {
-            for (int x : changed_right) {
-                seen_right[x] = 0;
-            }
+        if (cs <= ml) {
+            for (int x : cr) sr[x] = 0;
         }
     }
 
-    cout << beautiful_count << endl;
+    cout << ans << '\n';
 
     return 0;
 }

@@ -1,5 +1,7 @@
 # Đếm Bộ Ba Đẹp (Beautiful Triplets)
 
+> **⚡ LATEST:** Code đã được tối ưu tối đa với O(N² log N). Xem [`SUBMIT_GUIDE.md`](SUBMIT_GUIDE.md) để biết cách submit.
+
 ## Mô tả bài toán
 
 Cho dãy số nguyên dương A = A₁, A₂, ..., Aₙ.

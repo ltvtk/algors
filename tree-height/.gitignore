@@ -8,6 +8,9 @@ solution_linear
 solution_mo_pbds
 solution_mo_optimized
 solution_mo_ultra
+solution_sqrt
+solution_greedy
+solution_mega
 
 # Test output
 test_output.txt

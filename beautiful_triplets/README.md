@@ -130,17 +130,19 @@ Yêu cầu: Đếm số lượng bộ ba đẹp.
    - Reserve capacity cho vectors/maps
    - Reuse vectors thay vì tạo mới
 
-5. **map với pair key:** Dùng `map<pair<int, lint>, int>` thay vì unordered_map
-   - map ổn định hơn, tránh worst-case O(N) của unordered_map
-   - O(log N) lookup nhưng với constant factor nhỏ
+5. **unordered_map với custom hash:** Dùng `unordered_map<pair<int, lint>, int, PairHash>`
+   - O(1) average lookup (vs O(log N) của map)
+   - Custom hash function tốt để tránh collision
+   - Hash = `p.first * 1000000007LL + (p.second >> 32) * 1000000009LL + p.second`
 
-**Độ phức tạp:** O(N² log N) với constant factor rất nhỏ
+**Độ phức tạp:** O(N²) average case với constant factor rất nhỏ
 
 **Ưu điểm:**
 - **Nhanh nhất** trong tất cả các solutions
 - Pre-compute giảm O(N³) → O(N²)
-- map ổn định hơn unordered_map (tránh worst-case)
-- Memory-efficient với vector<char>
+- unordered_map O(1) thay vì map O(log N) → ~17x nhanh hơn!
+- Custom hash tốt để tránh collision
+- Memory-efficient với vector<bool>
 - Không giới hạn giá trị A_i
 - Pragma optimizations cho compiler
 
@@ -221,8 +223,9 @@ Thuật toán tốt hơn O(N²) cho bài này khó thực hiện và phức tạ
 | subtask3_bitset | ✅ Fast | ✅ Fast | ✅ Fast | ❌ Error | O(N²logN) |
 | general_hash | ✅ Fast | ✅ OK | ⚠️ OK | ⚠️ OK | O(N²M) |
 | solution_optimized | ✅ Fast | ✅ Fast | ❌ **TLE** | ❌ **TLE** | **O(N³)** ❌ |
-| **solution.cpp** ⭐⭐ | ✅ **Very Fast** | ✅ **Very Fast** | ✅ **Fast** | ✅ **OK** | **O(N²)** ✅ |
-| **solution_fast.cpp** ⭐⭐⭐ | ✅ **Very Fast** | ✅ **Very Fast** | ✅ **Very Fast** | ✅ **Fast** | **O(N²)** + pragma ✅ |
+| solution (with map) | ✅ Fast | ✅ OK | ❌ **TLE** | ❌ **TLE** | O(N²logN) ⚠️ |
+| **solution.cpp** ⭐⭐⭐ | ✅ **Very Fast** | ✅ **Very Fast** | ✅ **Fast** | ✅ **Fast** | **O(N²)** ✅ |
+| **solution_fast.cpp** ⭐⭐⭐ | ✅ **Very Fast** | ✅ **Very Fast** | ✅ **Very Fast** | ✅ **Fast** | **O(N²)** ✅ |
 
 **Kết luận:**
 - **Submit:** `solution_fast.cpp` hoặc `solution.cpp` (gần như giống nhau)

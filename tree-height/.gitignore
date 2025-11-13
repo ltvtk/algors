@@ -11,6 +11,9 @@ solution_mo_ultra
 solution_sqrt
 solution_greedy
 solution_mega
+solution_mo_v1
+solution_mo_v2
+solution_mo_v3
 
 # Test output
 test_output.txt

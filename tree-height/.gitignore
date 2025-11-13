@@ -5,6 +5,9 @@ solution_ultra
 solution_sorted
 solution_ultra_fast
 solution_linear
+solution_mo_pbds
+solution_mo_optimized
+solution_mo_ultra
 
 # Test output
 test_output.txt

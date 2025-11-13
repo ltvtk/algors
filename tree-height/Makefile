@@ -2,9 +2,9 @@ CXX = g++
 CXXFLAGS = -std=c++17 -O2 -Wall -Wextra
 CXXFLAGS_ULTRA = -std=c++17 -O3 -Wall -Wextra
 
-TARGETS = solution_optimized solution_advanced solution_ultra solution_sorted solution_ultra_fast solution_linear
+TARGETS = solution_optimized solution_advanced solution_ultra solution_sorted solution_ultra_fast solution_linear solution_mo_pbds solution_mo_optimized solution_mo_ultra
 
-.PHONY: all clean test advanced
+.PHONY: all clean test advanced mos
 
 all: $(TARGETS)
 
@@ -24,6 +24,15 @@ solution_ultra_fast: solution_ultra_fast.cpp
 	$(CXX) $(CXXFLAGS_ULTRA) -march=native $< -o $@ 2>/dev/null || $(CXX) $(CXXFLAGS_ULTRA) $< -o $@
 
 solution_linear: solution_linear_scan.cpp
+	$(CXX) $(CXXFLAGS_ULTRA) -march=native $< -o $@ 2>/dev/null || $(CXX) $(CXXFLAGS_ULTRA) $< -o $@
+
+solution_mo_pbds: solution_mo_pbds.cpp
+	$(CXX) $(CXXFLAGS_ULTRA) -march=native $< -o $@ 2>/dev/null || $(CXX) $(CXXFLAGS_ULTRA) $< -o $@
+
+solution_mo_optimized: solution_mo_optimized.cpp
+	$(CXX) $(CXXFLAGS_ULTRA) -march=native $< -o $@ 2>/dev/null || $(CXX) $(CXXFLAGS_ULTRA) $< -o $@
+
+solution_mo_ultra: solution_mo_ultra.cpp
 	$(CXX) $(CXXFLAGS_ULTRA) -march=native $< -o $@ 2>/dev/null || $(CXX) $(CXXFLAGS_ULTRA) $< -o $@
 
 test: solution_optimized solution_advanced solution_ultra
@@ -56,6 +65,21 @@ advanced: solution_sorted solution_ultra_fast solution_linear
 	@diff test_output.txt test_expected.txt && echo "✓ solution_linear passed" || echo "✗ solution_linear failed"
 	@rm -f test_output.txt
 
+mos: solution_mo_pbds solution_mo_optimized solution_mo_ultra
+	@echo "=== Testing Mo's Algorithm Solutions ==="
+	@echo "Testing solution_mo_pbds (GNU PBDS tree)..."
+	@./solution_mo_pbds < test_input.txt > test_output.txt
+	@diff test_output.txt test_expected.txt && echo "✓ solution_mo_pbds passed" || echo "✗ solution_mo_pbds failed"
+	@echo ""
+	@echo "Testing solution_mo_optimized (cached iterators)..."
+	@./solution_mo_optimized < test_input.txt > test_output.txt
+	@diff test_output.txt test_expected.txt && echo "✓ solution_mo_optimized passed" || echo "✗ solution_mo_optimized failed"
+	@echo ""
+	@echo "Testing solution_mo_ultra (extreme optimizations)..."
+	@./solution_mo_ultra < test_input.txt > test_output.txt
+	@diff test_output.txt test_expected.txt && echo "✓ solution_mo_ultra passed" || echo "✗ solution_mo_ultra failed"
+	@rm -f test_output.txt
+
 clean:
 	rm -f $(TARGETS) test_output.txt
 
@@ -79,6 +103,7 @@ help:
 	@echo "  all       - Build all solutions (default)"
 	@echo "  test      - Run tests on basic solutions"
 	@echo "  advanced  - Run tests on advanced solutions"
+	@echo "  mos       - Run tests on Mo's algorithm solutions"
 	@echo "  benchmark - Benchmark all solutions"
 	@echo "  clean     - Remove compiled binaries"
 	@echo "  help      - Show this help message"

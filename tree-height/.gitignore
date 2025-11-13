@@ -2,6 +2,9 @@
 solution_optimized
 solution_advanced
 solution_ultra
+solution_sorted
+solution_ultra_fast
+solution_linear
 
 # Test output
 test_output.txt

@@ -1,3 +1,4 @@
+#pragma GCC optimize("O3,unroll-loops")
 #include <bits/stdc++.h>
 using namespace std;
 using lint = long long;
@@ -56,7 +57,7 @@ int main() {
 
         // Build left segments ending at j
         unordered_map<pair<int, lint>, int, PairHash> left_map;
-        left_map.reserve(j + 1);
+        left_map.reserve(min(j + 1, max_right_size));
 
         changed_left.clear();
         lint current_hash = 0;

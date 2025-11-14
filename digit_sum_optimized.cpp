@@ -23,24 +23,29 @@ int main() {
         long long x;
         cin >> x;
 
-        bool found = false;
+        // Tối ưu quan trọng: Nếu X chẵn, luôn có nghiệm X/2 + X/2
+        if (x % 2 == 0) {
+            long long half = x / 2;
+            cout << half << " " << half << "\n";
+        } else {
+            // X lẻ: cần tìm kiếm, nhưng giới hạn nhỏ để tránh TLE
+            // Nghiệm thường nằm trong vài chục/trăm số đầu tiên
+            bool found = false;
+            long long limit = min(x - 1, 2000LL);
 
-        // Giới hạn tìm kiếm: với hầu hết X, nghiệm nằm trong vài nghìn số đầu
-        // Nếu X nhỏ, duyệt hết; nếu X lớn, giới hạn ở 1 triệu để tránh TLE
-        long long limit = min(x - 1, 1000000LL);
+            for (long long a = 1; a <= limit; ++a) {
+                long long b = x - a;
 
-        for (long long a = 1; a <= limit; ++a) {
-            long long b = x - a;
-
-            if (sum_digits(a) == sum_digits(b)) {
-                cout << a << " " << b << "\n";
-                found = true;
-                break;
+                if (sum_digits(a) == sum_digits(b)) {
+                    cout << a << " " << b << "\n";
+                    found = true;
+                    break;
+                }
             }
-        }
 
-        if (!found) {
-            cout << "-1\n";
+            if (!found) {
+                cout << "-1\n";
+            }
         }
     }
 

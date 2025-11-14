@@ -1,0 +1,32 @@
+# Compiled binaries
+solution_optimized
+solution_advanced
+solution_ultra
+solution_sorted
+solution_ultra_fast
+solution_linear
+solution_mo_pbds
+solution_mo_optimized
+solution_mo_ultra
+solution_sqrt
+solution_greedy
+solution_mega
+solution_mo_v1
+solution_mo_v2
+solution_mo_v3
+sol_exp*
+
+# Test output
+test_output.txt
+
+# C++ compiled files
+*.o
+*.out
+*.exe
+
+# Editor files
+*.swp
+*.swo
+*~
+.vscode/
+.idea/

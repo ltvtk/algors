@@ -37,5 +37,9 @@
 *.out
 *.app
 
+# Test binaries (no extension)
+*_test
+digit_sum_test
+
 # debug information files
 *.dwo

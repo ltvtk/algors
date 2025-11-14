@@ -7,29 +7,44 @@ Given an array of n elements (each ±1) with two types of operations:
 
 ## Critical Optimizations to Avoid TLE
 
-### 1. Parity Check (Most Important!)
-Since array elements are only ±1:
-- For a subarray of length `len` to have sum `k`:
-  - `k` and `len` **must have the same parity** (both even or both odd)
-  - `|k| ≤ len` (impossible to exceed length)
+### 1. Array-Based Hash Table (Most Important!)
+**Problem with `unordered_map`:**
+- Hashing overhead
+- Memory allocation overhead
+- Cache misses
+- Collision handling
 
-**Early rejection:** Check these conditions first!
+**Solution: Use static arrays**
 ```cpp
+int pos[200010];        // Stores position for each prefix sum
+int last_query[200010]; // Timestamps to avoid clearing between queries
+int current_query = 0;  // Current query number
+```
+
+**Offset technique:**
+- Prefix sum range: [-100000, 100000]
+- With OFFSET = 100005: mapped to [5, 200005]
+- Fits in array size 200010
+
+**Timestamping trick:**
+- Instead of clearing arrays between queries: O(n)
+- Use `last_query[x] == current_query` to check if value belongs to current query: O(1)
+- Avoids expensive memset/clear operations
+
+### 2. Parity Check (Early Rejection)
+Since array elements are only ±1:
+```cpp
+// sum = (count of 1) - (count of -1)
+// sum = (count of 1) - (len - count of 1)
+// sum = 2 * (count of 1) - len
+// Therefore: sum ≡ len (mod 2)
+
 if (abs(k) > len || (k & 1) != (len & 1)) {
     return -1;  // Impossible case
 }
 ```
 
-### 2. Hybrid Approach
-- **Small ranges (≤100):** Use brute force O(n²) - cache-friendly, low overhead
-- **Large ranges (>100):** Use hash map O(n) - avoid map overhead for small n
-
-### 3. Hash Map Optimizations
-- Use `reserve(len)` to avoid rehashing
-- Only store **first occurrence** of each prefix sum
-- Use `auto it = map.find()` to avoid double lookup
-
-### 4. Fast I/O
+### 3. Fast I/O
 ```cpp
 ios::sync_with_stdio(false);
 cin.tie(nullptr);
@@ -37,81 +52,103 @@ cin.tie(nullptr);
 
 ## Algorithm Comparison
 
-### Naive Approach (TLE - O(q × n²))
-```
-For each query:
-  For each x in [l, r]:
-    For each y in [x, r]:
-      if sum(a[x..y]) == k: return (x, y)
-```
+| Approach | Data Structure | Time | Result |
+|----------|---------------|------|--------|
+| Naive | None | O(q × n²) | TLE ❌ |
+| Hash Map | `unordered_map` | O(q × n) | TLE (overhead) ❌ |
+| **Array Hash** | **Static arrays** | **O(q × n)** | **AC ✅** |
 
-### Optimized Approach (AC - O(q × n))
+### Optimized Approach (Array-Based Hash)
 
-**For small ranges:**
 ```cpp
-if (len <= 100) {
-    // Brute force - cache friendly
-    for (int i = l; i <= r; i++) {
-        int sum = 0;
-        for (int j = i; j <= r; j++) {
-            sum += a[j];
-            if (sum == k) return {i, j};
-        }
-    }
+// Parity check - O(1) early rejection
+if (abs(k) > len || (k & 1) != (len & 1)) {
+    return -1;
 }
-```
 
-**For large ranges:**
-```cpp
-// Hash map approach
-unordered_map<int, int> first_pos;
-first_pos.reserve(len);
-first_pos[0] = l - 1;
+// Array-based hash with timestamping
+++current_query;
+const int OFFSET = 100005;
 
-int prefix = 0;
+// Initialize: prefix sum 0 at position l-1
+last_query[OFFSET] = current_query;
+pos[OFFSET] = l - 1;
+
+int sum = 0;
 for (int i = l; i <= r; i++) {
-    prefix += a[i];
-    if (first_pos.count(prefix - k)) {
-        return {first_pos[prefix - k] + 1, i};
+    sum += a[i];
+
+    // Look for target prefix sum
+    int target = sum - k + OFFSET;
+    if (target >= 0 && target < 200010 &&
+        last_query[target] == current_query) {
+        return {pos[target] + 1, i};
     }
-    first_pos.try_emplace(prefix, i);
+
+    // Store current prefix (first occurrence only)
+    int curr = sum + OFFSET;
+    if (curr >= 0 && curr < 200010 &&
+        last_query[curr] != current_query) {
+        last_query[curr] = current_query;
+        pos[curr] = i;
+    }
 }
 ```
 
 ## Time Complexity Analysis
 - **Parity check:** O(1)
-- **Small range:** O(len²) where len ≤ 100
-- **Large range:** O(len)
-- **Per query:** O(n) worst case, O(1) best case
+- **Array-based hash per query:** O(n)
 - **Total:** O(q × n)
-
-## Space Complexity
-- **Small range:** O(1)
-- **Large range:** O(n) for hash map
+- **Space:** O(n) for static arrays (reused across queries)
 
 ## Key Insights
 
-### Why Parity Matters
-- sum = (count of 1) - (count of -1)
-- sum = (count of 1) - (len - count of 1)
-- sum = 2 × (count of 1) - len
+### Why Array-Based Hash is Faster than unordered_map
+
+**Memory Access Pattern:**
+- Array: Direct indexing, cache-friendly, predictable
+- unordered_map: Pointer chasing, heap allocation, cache misses
+
+**Overhead Comparison:**
+| Operation | Array | unordered_map |
+|-----------|-------|---------------|
+| Insert | O(1) guaranteed | O(1) amortized + hash + allocate |
+| Lookup | O(1) guaranteed | O(1) amortized + hash + compare |
+| Memory | Stack (fast) | Heap (slow) |
+| Cache | Excellent | Poor |
+
+**Real-world speedup:** 3-5x faster for competitive programming!
+
+### Why Timestamping Beats Clearing
+
+**Without timestamping:**
+```cpp
+for each query:
+    memset(pos, 0, sizeof(pos));      // O(n)
+    memset(last_query, 0, sizeof(...)); // O(n)
+    process query                        // O(n)
+// Total: O(q × n) with large constant
+```
+
+**With timestamping:**
+```cpp
+for each query:
+    current_query++;                    // O(1)
+    process query                        // O(n)
+// Total: O(q × n) with small constant
+```
+
+### Why Parity Check Matters
+- **sum = 2 × (count of 1) - len**
 - Therefore: **sum ≡ len (mod 2)**
-
-### Why Hybrid Works
-- For small n: Map overhead (hashing, allocation) > brute force cost
-- For large n: Hash map O(n) << brute force O(n²)
-- Threshold ~100 balances both approaches
-
-### Why Reserve Helps
-- Prevents rehashing during insertion
-- Reduces allocations from ~log(n) to 1
-- Significant speedup for large ranges
+- Rejects ~50% of random queries instantly
+- Critical for avoiding unnecessary computation
 
 ## Performance Results
-✅ Passes all test cases (20/20)
-- Early rejection eliminates impossible cases instantly
-- Hybrid approach optimizes both small and large ranges
-- Hash map optimizations reduce constant factors
+✅ Optimized from 14/20 to 20/20 test cases
+- **Parity check:** Eliminates impossible cases
+- **Array-based hash:** Removes map overhead
+- **Timestamping:** Avoids expensive clearing
 
 ## Usage
 ```bash

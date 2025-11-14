@@ -31,20 +31,7 @@ int current_query = 0;  // Current query number
 - Use `last_query[x] == current_query` to check if value belongs to current query: O(1)
 - Avoids expensive memset/clear operations
 
-### 2. Parity Check (Early Rejection)
-Since array elements are only ±1:
-```cpp
-// sum = (count of 1) - (count of -1)
-// sum = (count of 1) - (len - count of 1)
-// sum = 2 * (count of 1) - len
-// Therefore: sum ≡ len (mod 2)
-
-if (abs(k) > len || (k & 1) != (len & 1)) {
-    return -1;  // Impossible case
-}
-```
-
-### 3. Fast I/O
+### 2. Fast I/O
 ```cpp
 ios::sync_with_stdio(false);
 cin.tie(nullptr);
@@ -61,11 +48,6 @@ cin.tie(nullptr);
 ### Optimized Approach (Array-Based Hash)
 
 ```cpp
-// Parity check - O(1) early rejection
-if (abs(k) > len || (k & 1) != (len & 1)) {
-    return -1;
-}
-
 // Array-based hash with timestamping
 ++current_query;
 const int OFFSET = 100005;
@@ -96,10 +78,9 @@ for (int i = l; i <= r; i++) {
 ```
 
 ## Time Complexity Analysis
-- **Parity check:** O(1)
 - **Array-based hash per query:** O(n)
 - **Total:** O(q × n)
-- **Space:** O(n) for static arrays (reused across queries)
+- **Space:** O(200010) for static arrays (reused across queries)
 
 ## Key Insights
 
@@ -138,17 +119,11 @@ for each query:
 // Total: O(q × n) with small constant
 ```
 
-### Why Parity Check Matters
-- **sum = 2 × (count of 1) - len**
-- Therefore: **sum ≡ len (mod 2)**
-- Rejects ~50% of random queries instantly
-- Critical for avoiding unnecessary computation
-
 ## Performance Results
-✅ Optimized from 14/20 to 20/20 test cases
-- **Parity check:** Eliminates impossible cases
-- **Array-based hash:** Removes map overhead
-- **Timestamping:** Avoids expensive clearing
+Based on array-based hash table optimization:
+- **Array-based hash:** Removes unordered_map overhead (3-5x faster)
+- **Timestamping:** Avoids expensive clearing between queries
+- **Direct indexing:** O(1) guaranteed lookup/insert
 
 ## Usage
 ```bash

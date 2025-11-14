@@ -30,16 +30,6 @@ int main(){
             int l, r, k;
             cin >> l >> r >> k;
 
-            int len = r - l + 1;
-
-            // Parity check: k and len must have same parity
-            // Since array has only ±1: sum = 2*(count of 1) - len
-            // Therefore: sum ≡ len (mod 2)
-            if(abs(k) > len || (k & 1) != (len & 1)){
-                cout << "-1\n";
-                continue;
-            }
-
             ++current_query;
             const int OFFSET = 100005;
 

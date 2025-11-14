@@ -35,13 +35,6 @@ def main():
             k = int(input_data[idx + 2])
             idx += 3
 
-            length = r - l + 1
-
-            # Parity check: k and len must have same parity
-            if abs(k) > length or (k & 1) != (length & 1):
-                output.append("-1")
-                continue
-
             current_query += 1
             OFFSET = 100005
 

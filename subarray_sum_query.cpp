@@ -1,11 +1,9 @@
-#include <iostream>
-#include <vector>
-#include <unordered_map>
+#include <bits/stdc++.h>
 using namespace std;
 
 int main() {
-    ios_base::sync_with_stdio(false);
-    cin.tie(NULL);
+    ios::sync_with_stdio(false);
+    cin.tie(nullptr);
 
     int n, q;
     cin >> n >> q;
@@ -27,35 +25,54 @@ int main() {
             int l, r, k;
             cin >> l >> r >> k;
 
-            // Compute prefix sums for range [l-1, r]
-            vector<int> prefix(r - l + 2);
-            prefix[0] = 0;
-            for (int i = l; i <= r; i++) {
-                prefix[i - l + 1] = prefix[i - l] + a[i];
+            int len = r - l + 1;
+
+            // Early checks for impossible cases
+            if (abs(k) > len || (k & 1) != (len & 1)) {
+                cout << "-1\n";
+                continue;
             }
 
-            // Use hash map to store prefix values and their positions
-            // For each y, find if there exists x such that prefix[y] - prefix[x-1] = k
-            unordered_map<int, int> prefixMap;
-            prefixMap[0] = l - 1;  // prefix[l-1] = 0
-
-            bool found = false;
-            for (int y = l; y <= r && !found; y++) {
-                int currentSum = prefix[y - l + 1];
-                int target = currentSum - k;
-
-                // Check if we've seen this prefix value before
-                if (prefixMap.find(target) != prefixMap.end()) {
-                    int x = prefixMap[target] + 1;
-                    if (x >= l && x <= y) {
-                        cout << x << " " << y << "\n";
-                        found = true;
+            // For small ranges, brute force is faster (cache-friendly)
+            if (len <= 100) {
+                bool found = false;
+                for (int i = l; i <= r && !found; i++) {
+                    int sum = 0;
+                    for (int j = i; j <= r; j++) {
+                        sum += a[j];
+                        if (sum == k) {
+                            cout << i << " " << j << "\n";
+                            found = true;
+                            break;
+                        }
                     }
                 }
+                if (!found) cout << "-1\n";
+                continue;
+            }
 
-                // Store current position if not already stored
-                if (!found && prefixMap.find(currentSum) == prefixMap.end()) {
-                    prefixMap[currentSum] = y;
+            // For larger ranges, use hash map approach
+            unordered_map<int, int> first_pos;
+            first_pos.reserve(len);  // Avoid rehashing
+            first_pos[0] = l - 1;
+
+            int prefix = 0;
+            bool found = false;
+
+            for (int i = l; i <= r; i++) {
+                prefix += a[i];
+                int target = prefix - k;
+
+                auto it = first_pos.find(target);
+                if (it != first_pos.end()) {
+                    cout << (it->second + 1) << " " << i << "\n";
+                    found = true;
+                    break;
+                }
+
+                // Only store first occurrence
+                if (first_pos.find(prefix) == first_pos.end()) {
+                    first_pos[prefix] = i;
                 }
             }
 
